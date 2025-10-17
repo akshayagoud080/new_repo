@@ -27,14 +27,18 @@ jobs:
       - name: Build WAR file
         run: mvn clean package - DskipTests
 
-     
-
-      # 5. Create SSH key file
-      - name: Setup SSH key
+      # 4. Verify WAR file exists and copy to ROOT.war
+      - name: Prepare WAR file
         run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
+          WAR_FILE=$(ls target/*.war | head -1)
+          if [ ! -f "$WAR_FILE" ]; then
+            echo "ERROR: WAR file not found!"
+            exit 1
+          fi
+          cp "$WAR_FILE" ./ROOT.war
+          echo "WAR file ready: ./ROOT.war"
+
+      
 
       # 6. Upload WAR to EC2
       - name: Upload WAR to EC2
