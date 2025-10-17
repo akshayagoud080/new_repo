@@ -45,36 +45,9 @@ jobs:
           echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
 
+      # 6. Upload WAR to EC2
+      - name: Upload WAR to EC2
+        run: |
+          scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ./ROOT.war ubuntu@${{ secrets.EC2_HOST }}:/tmp/ROOT.war
+
       
-
-      # 7. Deploy WAR on Tomcat
-      - name: Deploy WAR on Tomcat
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ubuntu
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            echo "=== Stopping Tomcat ==="
-            sudo systemctl stop tomcat10 || true
-
-            echo "=== Removing old deployment ==="
-            sudo rm -rf /var/lib/tomcat10/webapps/ROOT
-            sudo rm -f /var/lib/tomcat10/webapps/ROOT.war
-
-            echo "=== Copying new WAR ==="
-            sudo cp /tmp/ROOT.war /var/lib/tomcat10/webapps/ROOT.war
-            sudo chown tomcat:tomcat /var/lib/tomcat10/webapps/ROOT.war
-            sudo chmod 644 /var/lib/tomcat10/webapps/ROOT.war
-
-            echo "=== Starting Tomcat ==="
-            sudo systemctl start tomcat10
-
-            echo "=== Deployment complete. Waiting for startup... ==="
-            sleep 20
-
-            echo "=== Checking Tomcat status ==="
-            sudo systemctl status tomcat10 --no-pager
-
-            echo "=== Verifying deployment in webapps ==="
-            ls -lh /var/lib/tomcat10/webapps/
