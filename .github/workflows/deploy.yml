@@ -38,12 +38,14 @@ jobs:
           cp "$WAR_FILE" ./ROOT.war
           echo "WAR file ready: ./ROOT.war"
 
-      
-
-      # 6. Upload WAR to EC2
-      - name: Upload WAR to EC2
+      # 5. Create SSH key file
+      - name: Setup SSH key
         run: |
-          scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ./ROOT.war ubuntu@${{ secrets.EC2_HOST }}:/tmp/ROOT.war
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
+      
 
       # 7. Deploy WAR on Tomcat
       - name: Deploy WAR on Tomcat
